@@ -5,6 +5,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from process_data import process_pdfs  # Solo importamos process_pdfs
 
+def set_metric_in_column(label, value):
+    return st.metric(label=label, value=value)
+
 # Configuración de la página de Streamlit
 st.set_page_config(
     page_title="Mercadona Data Analysis",
@@ -93,20 +96,20 @@ if os.path.exists(csv_path):
 
             # Mostrar las métricas en las columnas
             with col1:
-                st.metric(label="Gasto Total", value=f"€{total_spent:.2f}")
-                st.metric(label="Gasto Promedio por Compra", value=f"€{avg_spent_per_purchase:.2f}")
-                st.metric(label="Número Total de Compras", value=total_purchases)
-                st.metric(label="Items Vendidos", value=total_items_sold)
+                set_metric_in_column("Gasto Total", f"€{total_spent:.2f}")
+                set_metric_in_column("Gasto Promedio por Compra", f"€{avg_spent_per_purchase:.2f}")
+                set_metric_in_column("Número Total de Compras", total_purchases)
+                set_metric_in_column("Items Vendidos", total_items_sold)
 
             with col2:
-                st.metric(label="Categoría con Mayor Gasto", value=category_with_highest_spent)
-                st.metric(label="Gasto Promedio Mensual", value=f"€{avg_spent_per_month:.2f}")
-                st.metric(label="Tickets por Mes", value=f"{total_tickets_per_month:.2f}")
+                set_metric_in_column("Categoría con Mayor Gasto", category_with_highest_spent)
+                set_metric_in_column("Gasto Promedio Mensual", f"€{avg_spent_per_month:.2f}")
+                set_metric_in_column("Tickets por Mes", f"{total_tickets_per_month:.2f}")
 
             with col3:
-                st.metric(label="Total Gastado en el Mes Seleccionado", value=f"€{filtered_data_by_month['precio'].sum():.2f}")
-                st.metric(label="Número de Compras en el Mes Seleccionado", value=filtered_data_by_month['identificativo de ticket'].nunique())
-                st.metric(label="Categoría con Mayor Gasto en el Mes Seleccionado", value=filtered_data_by_month.groupby("categoría")["precio"].sum().idxmax())
+                set_metric_in_column("Total Gastado en el Mes Seleccionado", f"€{filtered_data_by_month['precio'].sum():.2f}")
+                set_metric_in_column("Número de Compras en el Mes Seleccionado", filtered_data_by_month['identificativo de ticket'].nunique())
+                set_metric_in_column("Categoría con Mayor Gasto en el Mes Seleccionado", filtered_data_by_month.groupby("categoría")["precio"].sum().idxmax())
 
             # Crear una sola fila con los gráficos principales
             col1, col2, col3 = st.columns(3)
@@ -154,15 +157,6 @@ if os.path.exists(csv_path):
             with col2:
                 st.subheader("Datos Filtrados por Mes")
                 st.dataframe(filtered_data_by_month)
-
-            # Heatmap del gasto por día y hora
-            st.subheader("Heatmap del Gasto por Día y Hora")
-            data['day_of_week'] = data.index.dayofweek
-            data['hour_of_day'] = data.index.hour
-            heatmap_data = data.pivot_table(values='precio', index='hour_of_day', columns='day_of_week', aggfunc='sum', fill_value=0)
-            fig_heatmap = go.Figure(data=go.Heatmap(z=heatmap_data.values, x=['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'], y=list(range(24)), colorscale='Viridis'))
-            fig_heatmap.update_layout(xaxis_title='Día de la Semana', yaxis_title='Hora del Día')
-            st.plotly_chart(fig_heatmap)
 
         else:
             st.warning("El archivo CSV está vacío. Por favor, asegúrate de que `process_data.py` haya generado datos correctamente.")
